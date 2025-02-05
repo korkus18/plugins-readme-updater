@@ -64,16 +64,32 @@ function export_plugins_info_to_markdown($environment = 'production') {
 
 // Přidání admin menu pro ruční spuštění exportu
 add_action('admin_menu', function () {
+    // Hlavní položka v admin menu
     add_menu_page(
-        'Plugin Info Exporter',
-        'Export Plugins Info',
-        'manage_options',
-        'export-plugins-info',
-        'render_export_plugins_page',
-        'dashicons-download',
-        100
+        'Plugins Readme Updater', // Titulek stránky
+        'Plugins Readme Updater', // Název v menu
+        'manage_options', // Potřebné oprávnění
+        'plugins-readme-updater', // Slug stránky
+        'render_export_plugins_page', // Callback pro obsah stránky
+        'dashicons-admin-generic', // Ikona
+        100 // Pozice v menu
+    );
+
+    // Submenu pro admin settings
+    add_submenu_page(
+        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
+        'Admin Settings', // Titulek stránky
+        'Admin Settings', // Název v submenu
+        'manage_options', // Potřebné oprávnění
+        'admin-settings', // Slug submenu
+        'render_admin_settings_page' // Callback pro obsah stránky
     );
 });
+
+function load_admin_settings_page() {
+    require_once plugin_dir_path(__FILE__) . 'admin-settings.php';
+    render_admin_settings_page();
+}
 
 // Funkce pro export a commit na GitHub
 function export_and_commit_to_github($environment = 'production') {

@@ -34,7 +34,7 @@ function update_constant_in_wpconfig($constant_name, $constant_value) {
     return true;
 }
 
-// ✅ Přidáváme podmínku, aby se změny prováděly pouze při odeslání správného formuláře
+//  Přidáváme podmínku, aby se změny prováděly pouze při odeslání správného formuláře
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_settings_form'])) {
     if (isset($_POST['github_repo'])) {
         update_constant_in_wpconfig('GITHUB_REPO', sanitize_text_field($_POST['github_repo']));
@@ -52,19 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_settings_form'
     echo '<div class="updated"><p>Nastavení bylo úspěšně uloženo do wp-config.php.</p></div>';
 }
 
-// Přidání admin menu do WordPressu
-add_action('admin_menu', function () {
-    add_menu_page(
-        'GitHub Settings',
-        'GitHub Settings',
-        'manage_options',
-        'github-settings',
-        'render_github_settings_page'
-    );
-});
 
 // Funkce pro vykreslení administrační stránky
-function render_github_settings_page() {
+function render_admin_settings_page() {
     ?>
     <div class="wrap">
         <h2>Nastavení GitHub Připojení</h2>
