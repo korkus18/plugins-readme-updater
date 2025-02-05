@@ -6,7 +6,7 @@
  * Author: Argo22 by Jakub Korous
  */
 date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
-
+require_once plugin_dir_path(__FILE__) . 'admin-settings.php';
 
 // Funkce pro získání informací o pluginech a uložení do souboru .md
 function export_plugins_info_to_markdown($environment = 'production') {
@@ -81,10 +81,10 @@ function export_and_commit_to_github($environment = 'production') {
     $file_path = export_plugins_info_to_markdown($environment);
 
     // Krok 2: Nahrání na GitHub
-    $repo = 'pg'; // Název repozitáře
-    $branch = 'main'; // Větev
-    $token = ''; // Váš GitHub token
-    $username = 'korkus18'; // GitHub uživatelské jméno
+    $repo = get_option('github_repo', '');
+    $branch = get_option('github_branch', '');
+    $token = get_option('github_token', '');
+    $username = get_option('github_username', '');
 
     $upload_response = upload_to_github_with_filepath($file_path, $repo, $branch, $token, $username);
 
@@ -214,10 +214,11 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
 // Parametry
 $environment = isset($_POST['environment']) ? sanitize_text_field($_POST['environment']) : 'production';
 $file_path = wp_upload_dir()['basedir'] . '/' . $environment . '-plugins-readme.md';
-$repo = 'pg'; // Název repository (použijte správný název repozitáře bez https://)
-$branch = 'main'; // Větev
-$token = ''; // Váš GitHub token
-$username = 'korkus18'; // GitHub uživatelské jméno
+$repo = get_option('github_repo', '');
+$branch = get_option('github_branch', '');
+$token = get_option('github_token', '');
+$username = get_option('github_username', '');
+
 
 // Spuštění funkce pro nahrání
 $response = upload_to_github_with_filepath($file_path, $repo, $branch, $token, $username); // Ujistěte se, že voláte správnou funkci
