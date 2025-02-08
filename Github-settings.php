@@ -74,11 +74,18 @@ if (isset($_POST['github_settings_form'])) { // Opraveno pro správné rozpozná
 // Funkce pro vykreslení administrační stránky
 function render_admin_settings_page() {
     $current_repo = get_option('github_repo', '');
+    $current_branch = get_option('github_branch', '');
+    $current_token = get_option('github_token', '');
+    $current_username = get_option('github_username', '');
+
+    // Pokud už token existuje, zobrazíme jen hvězdičky
+    $masked_token = !empty($current_token) ? str_repeat('*', 10) : '';
+
     ?>
     <div class="wrap">
         <h2>Nastavení GitHub Připojení</h2>
+
         <form method="post">
-            <!-- Skrytý input pro rozpoznání formuláře -->
             <input type="hidden" name="github_settings_form" value="1">
             <table class="form-table">
                 <tr>
@@ -87,19 +94,32 @@ function render_admin_settings_page() {
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_branch">GitHub Branch:</label></th>
-                    <td><input type="text" id="github_branch" name="github_branch" value="<?php echo esc_attr(get_option('github_branch', '')); ?>" required></td>
+                    <td><input type="text" id="github_branch" name="github_branch" value="<?php echo esc_attr($current_branch); ?>" required></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_token">GitHub Token:</label></th>
-                    <td><input type="text" id="github_token" name="github_token" value="<?php echo esc_attr(get_option('github_token', '')); ?>" required></td>
+                    <td>
+                        <input type="text" id="github_token" name="github_token" value="<?php echo esc_attr($masked_token); ?>"
+                               onfocus="clearMaskedToken()" required>
+                    </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_username">GitHub Username:</label></th>
-                    <td><input type="text" id="github_username" name="github_username" value="<?php echo esc_attr(get_option('github_username', '')); ?>" required></td>
+                    <td><input type="text" id="github_username" name="github_username" value="<?php echo esc_attr($current_username); ?>" required></td>
                 </tr>
             </table>
             <button type="submit" class="button button-primary">Uložit</button>
         </form>
     </div>
+
+    <script>
+        function clearMaskedToken() {
+            var tokenField = document.getElementById("github_token");
+            if (tokenField.value === "**********") {
+                tokenField.value = ""; // Po kliknutí do pole odstraníme hvězdičky
+            }
+        }
+    </script>
     <?php
 }
+
