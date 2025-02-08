@@ -6,10 +6,16 @@
  * Author: Argo22 by Jakub Korous
  */
 date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
-require_once plugin_dir_path(__FILE__) . 'admin-settings.php';
+require_once plugin_dir_path(__FILE__) . 'github-settings.php';
+require_once plugin_dir_path(__FILE__) . 'environment-settings.php';
+
 
 // Funkce pro získání informací o pluginech a uložení do souboru .md
-function export_plugins_info_to_markdown($environment = 'production') {
+function export_plugins_info_to_markdown($environment = '') {
+    if (!$environment) {
+        $environment = get_option('export_environment', 'production'); // Použití uloženého prostředí
+    }
+
     // Získání všech nainstalovaných pluginů
     if (!function_exists('get_plugins')) {
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -41,7 +47,6 @@ function export_plugins_info_to_markdown($environment = 'production') {
 
     foreach ($plugins as $plugin_path => $plugin_info) {
         $is_active = is_plugin_active($plugin_path);
-
         $plugin_url = !empty($plugin_info['PluginURI']) ? $plugin_info['PluginURI'] : '';
 
         $markdown_content .= "#### " . (!empty($plugin_url) ? "[" . $plugin_info['Name'] . "](" . $plugin_url . ")" : $plugin_info['Name']) . "\n";
@@ -58,7 +63,6 @@ function export_plugins_info_to_markdown($environment = 'production') {
     // Uložení dat do souboru
     file_put_contents($file_path, $markdown_content);
 
-    // Zpráva o úspěchu
     return $file_path;
 }
 
@@ -78,25 +82,37 @@ add_action('admin_menu', function () {
     // Submenu pro admin settings
     add_submenu_page(
         'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
-        'Admin Settings', // Titulek stránky
-        'Admin Settings', // Název v submenu
+        'Github Settings', // Titulek stránky
+        'Github Settings', // Název v submenu
         'manage_options', // Potřebné oprávnění
-        'admin-settings', // Slug submenu
+        'Github-settings', // Slug submenu
         'render_admin_settings_page' // Callback pro obsah stránky
+    );
+
+    add_submenu_page(
+        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
+        'Nastavení prostředí', // Titulek stránky
+        'Nastavení prostředí', // Název v menu
+        'manage_options', // Potřebná oprávnění
+        'environment-settings', // Slug stránky
+        'render_environment_settings_page' // Callback pro obsah stránky
     );
 });
 
 function load_admin_settings_page() {
-    require_once plugin_dir_path(__FILE__) . 'admin-settings.php';
+    require_once plugin_dir_path(__FILE__) . 'Github-settings.php';
     render_admin_settings_page();
 }
 
 // Funkce pro export a commit na GitHub
-function export_and_commit_to_github($environment = 'production') {
-    // Krok 1: Vytvoření souboru
+function export_and_commit_to_github($environment = '') {
+    if (empty($environment)) {
+        $environment = get_option('export_environment', 'production'); // Použití uloženého prostředí
+    }
+
+
     $file_path = export_plugins_info_to_markdown($environment);
 
-    // Krok 2: Nahrání na GitHub
     $repo = get_option('github_repo', '');
     $branch = get_option('github_branch', '');
     $token = get_option('github_token', '');
@@ -104,13 +120,14 @@ function export_and_commit_to_github($environment = 'production') {
 
     $upload_response = upload_to_github_with_filepath($file_path, $repo, $branch, $token, $username);
 
-    // Vytvoření odpovědí pro úspěch/selhání
     if ($upload_response) {
-        return '<div class="updated"><p>Soubor byl úspěšně exportován a nahrán na GitHub: <code>' . esc_html($file_path) . '</code></p></div>';
+        return '<div class="updated"><p>Soubor byl úspěšně nahrán na GitHub a uložen do souboru: <code>' . esc_html($file_path) . '</code></p></div>';
     } else {
         return '<div class="error"><p>Došlo k chybě při nahrávání souboru na GitHub.</p></div>';
     }
 }
+
+
 
 // Funkce pro vykreslení stránky
 function render_export_plugins_page() {
@@ -118,31 +135,33 @@ function render_export_plugins_page() {
         return;
     }
 
-    // Nastavení výchozího prostředí
-    $environment = isset($_POST['environment']) ? sanitize_text_field($_POST['environment']) : 'production';
+    // Načtení uložené hodnoty nebo výchozího 'production'
+    $environment = get_option('export_environment', 'production');
+
+    // Pokud uživatel odešle formulář, uložíme novou hodnotu
+    if (isset($_POST['export_plugins_info'])) {
+        $environment = get_option('export_environment', 'production'); // Použití uloženého prostředí
+        $response = export_and_commit_to_github($environment);
+    }
+
 
     echo '<div class="wrap">';
     echo '<h1>Export Plugins Info</h1>';
 
     // Formulář pro export
     echo '<form method="post">';
-    echo '<label for="environment">Prostředí:</label>';
-    echo '<select name="environment" id="environment" style="margin-bottom: 20px; display: flex">';
-    echo '<option value="production"' . selected($environment, 'production', false) . '>Production</option>';
-    echo '<option value="staging"' . selected($environment, 'staging', false) . '>Staging</option>';
-    echo '</select>';
     echo '<input type="hidden" name="export_plugins_info" value="1">';
     echo '<button type="submit" class="button button-primary">Exportovat Informace o Pluginech</button>';
     echo '</form>';
 
-    // Zpracování exportu a commitování na GitHub
-    if (isset($_POST['export_plugins_info'])) {
-        $response = export_and_commit_to_github($environment);
+    // Výpis odpovědi po exportu
+    if (isset($response)) {
         echo $response;
     }
 
     echo '</div>';
 }
+
 
 
 
