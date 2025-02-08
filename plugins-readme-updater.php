@@ -121,10 +121,17 @@ function export_and_commit_to_github($environment = '') {
     $upload_response = upload_to_github_with_filepath($file_path, $repo, $branch, $token, $username);
 
     if ($upload_response) {
-        return '<div class="updated"><p>Soubor byl úspěšně nahrán na GitHub a uložen do souboru: <code>' . esc_html($file_path) . '</code></p></div>';
+        $github_url = "https://github.com/$username/$repo/blob/$branch/" . basename($file_path);
+
+        return '<div class="updated">
+            <p>Soubor byl úspěšně nahrán na GitHub:
+            <a href="' . esc_url($github_url) . '" target="_blank">' . esc_html($github_url) . '</a></p>
+            <p>A uložen do souboru: <code>' . esc_html($file_path) . '</code></p>
+        </div>';
     } else {
         return '<div class="error"><p>Došlo k chybě při nahrávání souboru na GitHub.</p></div>';
     }
+
 }
 
 
@@ -213,8 +220,9 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
     }
 
     // 3. Nahrání obsahu (aktualizace nebo vytvoření)
+    $environment = get_option('export_environment', 'production'); // Získání aktuálního prostředí
     $data = [
-        'message' => 'Automated update via API',
+        'message' => 'update-plugins-readme.md-' . date('Y-m-d-H-i') . '-' . $environment,
         'content' => $base64_content,
         'branch' => $branch,
     ];
@@ -233,14 +241,6 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
     curl_close($ch);
 
     error_log("Upload response: " . $upload_response);
-
-    if ($upload_http_code === 201 || $upload_http_code === 200) {
-        // Úspěch - stylizovaná zpráva pro úspěšné nahrání
-        return '<div class="updated"><p>Úspěšně nahráno na GitHub</p></div>';
-    } else {
-        // Neúspěch - stylizovaná zpráva pro neúspěšné nahrání
-        return '<div class="error"><p>Neúspěšně nahráno na GitHub</p></div>';
-    }
 
     return $upload_response;
 }
