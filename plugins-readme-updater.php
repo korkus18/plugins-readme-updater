@@ -8,6 +8,8 @@
 date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
 require_once plugin_dir_path(__FILE__) . 'github-settings.php';
 require_once plugin_dir_path(__FILE__) . 'environment-settings.php';
+require_once plugin_dir_path(__FILE__) . 'plugins-update-checker.php';
+
 
 
 // Funkce pro získání informací o pluginech a uložení do souboru .md
@@ -96,6 +98,15 @@ add_action('admin_menu', function () {
         'manage_options', // Potřebná oprávnění
         'environment-settings', // Slug stránky
         'render_environment_settings_page' // Callback pro obsah stránky
+    );
+
+    add_submenu_page(
+        'plugins-readme-updater', // Slug hlavní stránky
+        'Plugins Update Checker', // Titulek stránky
+        'Plugins to update', // Název v menu
+        'manage_options', // Oprávnění
+        'plugins-update-checker', // Slug submenu
+        'render_plugins_update_checker_page' // Callback funkce pro vykreslení obsahu stránky
     );
 });
 
