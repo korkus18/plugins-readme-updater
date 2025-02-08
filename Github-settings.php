@@ -35,26 +35,45 @@ function update_constant_in_wpconfig($constant_name, $constant_value) {
 }
 
 //  Přidáváme podmínku, aby se změny prováděly pouze při odeslání správného formuláře
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['github_settings_form'])) {
-    if (isset($_POST['github_repo'])) {
-        update_constant_in_wpconfig('GITHUB_REPO', sanitize_text_field($_POST['github_repo']));
-    }
-    if (isset($_POST['github_branch'])) {
-        update_constant_in_wpconfig('GITHUB_BRANCH', sanitize_text_field($_POST['github_branch']));
-    }
-    if (isset($_POST['github_token'])) {
-        update_constant_in_wpconfig('GITHUB_TOKEN', sanitize_text_field($_POST['github_token']));
-    }
-    if (isset($_POST['github_username'])) {
-        update_constant_in_wpconfig('GITHUB_USERNAME', sanitize_text_field($_POST['github_username']));
+if (isset($_POST['github_settings_form'])) { // Opraveno pro správné rozpoznání formuláře
+    update_option('github_repo', sanitize_text_field($_POST['github_repo']));
+    update_option('github_branch', sanitize_text_field($_POST['github_branch']));
+    update_option('github_token', sanitize_text_field($_POST['github_token']));
+    update_option('github_username', sanitize_text_field($_POST['github_username']));
+
+    wp_cache_delete('github_repo', 'options'); // Odstranění cache pro danou hodnotu
+    wp_cache_flush(); // Celkové vyčištění cache
+
+    if (isset($_POST['github_settings_form'])) {
+        $repo = sanitize_text_field($_POST['github_repo']);
+        $branch = sanitize_text_field($_POST['github_branch']);
+        $token = sanitize_text_field($_POST['github_token']);
+        $username = sanitize_text_field($_POST['github_username']);
+
+        update_option('github_repo', $repo);
+        update_option('github_branch', $branch);
+        update_option('github_token', $token);
+        update_option('github_username', $username);
+
+        wp_cache_delete('github_repo', 'options');
+        wp_cache_flush();
+
+        echo '<div class="updated"><p>Nastavení bylo úspěšně uloženo:</p>';
+        echo '<ul>';
+        echo '<li><strong>GitHub Repo:</strong> ' . esc_html($repo) . '</li>';
+        echo '<li><strong>GitHub Branch:</strong> ' . esc_html($branch) . '</li>';
+        echo '<li><strong>GitHub Token:</strong> ' . esc_html(substr($token, 0, 5)) . '*****</li>'; // Částečné skrytí tokenu
+        echo '<li><strong>GitHub Username:</strong> ' . esc_html($username) . '</li>';
+        echo '</ul>';
+        echo '</div>';
     }
 
-    echo '<div class="updated"><p>Nastavení bylo úspěšně uloženo do wp-config.php.</p></div>';
 }
 
 
 // Funkce pro vykreslení administrační stránky
 function render_admin_settings_page() {
+    $current_repo = get_option('github_repo', '');
     ?>
     <div class="wrap">
         <h2>Nastavení GitHub Připojení</h2>
@@ -64,19 +83,19 @@ function render_admin_settings_page() {
             <table class="form-table">
                 <tr>
                     <th scope="row"><label for="github_repo">GitHub Repo:</label></th>
-                    <td><input type="text" id="github_repo" name="github_repo" value="" required></td>
+                    <td><input type="text" id="github_repo" name="github_repo" value="<?php echo esc_attr($current_repo); ?>" required></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_branch">GitHub Branch:</label></th>
-                    <td><input type="text" id="github_branch" name="github_branch" value="" required></td>
+                    <td><input type="text" id="github_branch" name="github_branch" value="<?php echo esc_attr(get_option('github_branch', '')); ?>" required></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_token">GitHub Token:</label></th>
-                    <td><input type="text" id="github_token" name="github_token" value="" required></td>
+                    <td><input type="text" id="github_token" name="github_token" value="<?php echo esc_attr(get_option('github_token', '')); ?>" required></td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="github_username">GitHub Username:</label></th>
-                    <td><input type="text" id="github_username" name="github_username" value="" required></td>
+                    <td><input type="text" id="github_username" name="github_username" value="<?php echo esc_attr(get_option('github_username', '')); ?>" required></td>
                 </tr>
             </table>
             <button type="submit" class="button button-primary">Uložit</button>
