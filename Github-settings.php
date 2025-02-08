@@ -101,7 +101,7 @@ function render_admin_settings_page() {
                 <tr>
                     <th scope="row"><label for="github_token">GitHub Token:</label></th>
                     <td>
-                        <input type="password" id="github_token" name="github_token" placeholder="Nový token (ponechte prázdné, pokud nechcete měnit)">
+                        <input class="large-text" type="password" id="github_token" name="github_token" placeholder="Nový token (ponechte prázdné, pokud nechcete měnit)">
                         <p><small>Váš aktuální token není z bezpečnostních důvodů zobrazen.</small></p>
                     </td>
                 </tr>
@@ -113,5 +113,11 @@ function render_admin_settings_page() {
             <button type="submit" class="button button-primary">Uložit</button>
         </form>
     </div>
+<style>
+    .large-text {
+        width: 100%; /* Roztáhne input na celou šířku */
+        max-width: 400px; /* Omezí maximální šířku */
+    }
+</style>
     <?php
 }
