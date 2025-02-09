@@ -111,8 +111,9 @@ function get_plugins_update_report() {
         return 'Nemáš oprávnění pro zobrazení tohoto reportu.';
     }
 
-    // ❗ Získání uložené osoby pro Slack zprávu
+    // ❗ Získání uložených hodnot
     $slack_recipient = get_option('slack_recipient', '');
+    $update_note = get_option('update_note', '');
 
     // ❗ Pokud uživatel zadal jen "@uživatel", Slack to nemusí správně zpracovat
     if (!empty($slack_recipient) && strpos($slack_recipient, '<@') === false) {
@@ -171,7 +172,7 @@ function get_plugins_update_report() {
     }
 
     // ✅ Sestavení zprávy pro Slack
-    $report = "🌐 *Web: $site_title*\n\n";
+    $report = " *Web: $site_title*\n\n";
 
     // ✅ Přidání označení osoby na začátek zprávy
     if (!empty($slack_recipient)) {
@@ -196,5 +197,12 @@ function get_plugins_update_report() {
         $report .= " *Themes:*\n   ✅ Všechny šablony jsou aktuální.\n";
     }
 
+    // ✅ Přidání poznámky k updatům, pokud existuje
+    if (!empty($update_note)) {
+        $report .= "\n *Poznámka:*\n$update_note";
+    }
+
     return $report;
 }
+
+

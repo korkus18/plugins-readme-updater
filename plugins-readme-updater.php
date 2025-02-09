@@ -188,25 +188,38 @@ function render_export_plugins_page() {
     echo '</form>';
     echo '</div>';
 
+    // 🔹 Poznámka k update reportu
+    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📝 Poznámka k update reportu</h2>';
+    echo '<form method="post">';
+    echo '<label for="update_note" style="display: block; font-size: 14px; margin-bottom: 5px;">Poznámka:</label>';
+    echo '<textarea id="update_note" name="update_note" placeholder="Doplňující informace..." style="width: 100%; height: 60px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">' . esc_textarea(get_option('update_note', '')) . '</textarea>';
+    echo '<input type="hidden" name="save_update_note" value="1">';
+    echo '<button type="submit" class="button" style="margin-top: 10px;">Uložit</button>';
+    echo '</form>';
+    echo '</div>';
+
+
     // 🔹 Export na Slack
     echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
     echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📤 Export na Slack</h2>';
-    echo '<form method="post">';
+    echo '<form method="post" id="slackExportForm">';
     echo '<input type="hidden" name="export_to_slack" value="1">';
-    echo '<button type="submit" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Odeslat na Slack</button>';
+    echo '<button type="submit" id="export_to_slack_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Odeslat na Slack</button>';
     echo '</form>';
     echo '</div>';
 
-    // 🔹 Export na GitHub
-    echo '<div style="padding: 15px 0;">';
-    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Commit na GitHub</h2>';
-    echo '<form method="post">';
-    echo '<input type="hidden" name="export_plugins_info" value="1">';
-    echo '<button type="submit" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Commitnout na GitHub</button>';
-    echo '</form>';
-    echo '</div>';
 
-    echo '</div>';
+// 🔹 Export na GitHub
+echo '<div style="padding: 15px 0;">';
+echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Commit na GitHub</h2>';
+echo '<form method="post" id="githubExportForm">';
+echo '<input type="hidden" name="export_plugins_info" value="1">';
+echo '<button type="submit" id="export_to_github_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Commitnout na GitHub</button>';
+echo '</form>';
+echo '<div id="githubSuccessMessage" style="display: none; margin-top: 10px; padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">✅ Commit úspěšně proveden na GitHub!</div>';
+echo '</div>';
+
 
 
 
@@ -223,13 +236,13 @@ function render_export_plugins_page() {
 
 
 
-
-// Uložení nové hodnoty po odeslání formuláře
-if (isset($_POST['save_slack_recipient'])) {
-    $slack_recipient = sanitize_text_field($_POST['slack_recipient']);
-    update_option('slack_recipient', $slack_recipient);
-    echo '<div class="updated"><p>Příjemce pro Slack zprávu byl uložen.</p></div>';
+// Uložení nové hodnoty poznámky po odeslání formuláře
+if (isset($_POST['save_update_note'])) {
+    $update_note = sanitize_textarea_field($_POST['update_note']);
+    update_option('update_note', $update_note); // Uloží poznámku
+    echo '<div class="updated"><p>Poznámka byla úspěšně uložena.</p></div>';
 }
+
 
 
 
@@ -348,4 +361,34 @@ if (isset($_POST['export_to_slack'])) {
     $response = send_export_to_slack($message); // Pošleme report na Slack
     echo $response;
 }
+
+// JavaScript pro změnu textu tlačítek při odeslání
+echo '<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function handleFormSubmit(formId, buttonId, buttonText) {
+            let form = document.getElementById(formId);
+            let button = document.getElementById(buttonId);
+
+            if (form) {
+                form.addEventListener("submit", function () {
+                    button.disabled = true;
+                    button.innerText = buttonText; // Změna textu tlačítka
+
+                    setTimeout(() => {
+                        button.innerText = buttonText.replace("...", "nout"); // Obnova textu tlačítka
+                        button.disabled = false; // Opětovná aktivace tlačítka
+                    }, 1000); //
+                });
+            }
+        }
+
+        // Aplikace na Slack tlačítko
+        handleFormSubmit("slackExportForm", "export_to_slack_button", "Odesílám...");
+
+        // Aplikace na GitHub tlačítko
+        handleFormSubmit("githubExportForm", "export_to_github_button", "Commituji...");
+    });
+</script>';
+
+
 
