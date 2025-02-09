@@ -4,7 +4,7 @@
 
 ### Environment: Production
 
-### Date: 2025-02-08 21:17
+### Date: 2025-02-09 13:47
 
 ### Wordpress Core, Version 6.7.1
 
@@ -100,12 +100,6 @@ active
 Version 1.0.0
 Exportuje informace o nainstalovaných pluginech do .md.
 Autor: Argo22 by Jakub Korous
-active
-
-#### SLA Plugin Update Check
-Version 1.0.2
-A custom plugin that displays the update status of all installed plugins in an admin page.
-Autor: ARGO22
 active
 
 #### [WordPress Importer](https://wordpress.org/plugins/wordpress-importer/)
