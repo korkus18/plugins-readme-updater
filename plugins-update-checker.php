@@ -111,6 +111,14 @@ function get_plugins_update_report() {
         return 'Nemáš oprávnění pro zobrazení tohoto reportu.';
     }
 
+    // ❗ Získání uložené osoby pro Slack zprávu
+    $slack_recipient = get_option('slack_recipient', '');
+
+    // ❗ Pokud uživatel zadal jen "@uživatel", Slack to nemusí správně zpracovat
+    if (!empty($slack_recipient) && strpos($slack_recipient, '<@') === false) {
+        $slack_recipient = "<" . trim($slack_recipient) . ">";
+    }
+
     // ❗ Resetujeme cache pro všechny aktualizace
     delete_site_transient('update_plugins');
     delete_site_transient('update_themes');
@@ -129,7 +137,7 @@ function get_plugins_update_report() {
     $plugins = get_plugins();
     $themes = wp_get_themes();
     $core_version = get_bloginfo('version');
-    $site_title = get_bloginfo('name'); // Získání názvu webu
+    $site_title = get_bloginfo('name');
 
     $plugin_list = [];
     $theme_list = [];
@@ -139,7 +147,7 @@ function get_plugins_update_report() {
     if ($updates_plugins && !empty($updates_plugins->response)) {
         foreach ($plugins as $name => $plugin) {
             if (isset($updates_plugins->response[$name])) {
-                $plugin_list[] = "    *" . $plugin["Name"] . "*\n       " . $plugin["Version"] . "  →  " . $updates_plugins->response[$name]->new_version;
+                $plugin_list[] = "   ️ *" . $plugin["Name"] . "*\n       " . $plugin["Version"] . "  →  " . $updates_plugins->response[$name]->new_version;
             }
         }
     }
@@ -163,7 +171,12 @@ function get_plugins_update_report() {
     }
 
     // ✅ Sestavení zprávy pro Slack
-    $report = " *Web: $site_title*\n\n";
+    $report = "🌐 *Web: $site_title*\n\n";
+
+    // ✅ Přidání označení osoby na začátek zprávy
+    if (!empty($slack_recipient)) {
+        $report = "$slack_recipient\n\n" . $report;
+    }
 
     if (!empty($plugin_list)) {
         $report .= " *Plugins:*\n" . implode("\n", $plugin_list) . "\n\n";

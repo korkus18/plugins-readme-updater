@@ -172,21 +172,43 @@ function render_export_plugins_page() {
         $response = export_and_commit_to_github($environment);
     }
 
+    $slack_recipient = get_option('slack_recipient', '');
 
-    echo '<div class="wrap">';
-    echo '<h1>SLA plugin</h1>';
+    echo '<div class="wrap" style="max-width: 600px; margin: 0 auto;">';
+    echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">🔧 Plugins Readme Updater</h1>';
 
-    echo "<h3>Nahrát výpis na slack</h3>";
+    // 🔹 Slack příjemce
+    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📢 Slack Zpráva</h2>';
+    echo '<form method="post">';
+    echo '<label for="slack_recipient" style="display: block; font-size: 14px; margin-bottom: 5px;">Příjemce:</label>';
+    echo '<input type="text" id="slack_recipient" name="slack_recipient" value="' . esc_attr($slack_recipient) . '" placeholder="@Petr nebo @team" style="width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">';
+    echo '<input type="hidden" name="save_slack_recipient" value="1">';
+    echo '<button type="submit" class="button" style="margin-top: 10px;">Uložit</button>';
+    echo '</form>';
+    echo '</div>';
+
+    // 🔹 Export na Slack
+    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📤 Export na Slack</h2>';
     echo '<form method="post">';
     echo '<input type="hidden" name="export_to_slack" value="1">';
-    echo '<button type="submit" class="button button-primary">Slack</button>';
+    echo '<button type="submit" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Odeslat na Slack</button>';
     echo '</form>';
+    echo '</div>';
 
-    echo "<h3>commitnout plugin-readme.md</h3>";
+    // 🔹 Export na GitHub
+    echo '<div style="padding: 15px 0;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Commit na GitHub</h2>';
     echo '<form method="post">';
     echo '<input type="hidden" name="export_plugins_info" value="1">';
-    echo '<button type="submit" class="button button-primary">GitHub</button>';
+    echo '<button type="submit" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Commitnout na GitHub</button>';
     echo '</form>';
+    echo '</div>';
+
+    echo '</div>';
+
+
 
     // Výpis odpovědi po exportu
     if (isset($response)) {
@@ -201,6 +223,13 @@ function render_export_plugins_page() {
 
 
 
+
+// Uložení nové hodnoty po odeslání formuláře
+if (isset($_POST['save_slack_recipient'])) {
+    $slack_recipient = sanitize_text_field($_POST['slack_recipient']);
+    update_option('slack_recipient', $slack_recipient);
+    echo '<div class="updated"><p>Příjemce pro Slack zprávu byl uložen.</p></div>';
+}
 
 
 
