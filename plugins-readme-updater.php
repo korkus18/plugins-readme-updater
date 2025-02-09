@@ -174,18 +174,18 @@ function render_export_plugins_page() {
 
 
     echo '<div class="wrap">';
-    echo '<h1>Export Plugins Info</h1>';
+    echo '<h1>SLA plugin</h1>';
 
-    // Formulář pro export
-    echo '<form method="post">';
-    echo '<input type="hidden" name="export_plugins_info" value="1">';
-    echo '<button type="submit" class="button button-primary">GitHub</button>';
-    echo '</form>';
-
-
+    echo "<h3>Nahrát výpis na slack</h3>";
     echo '<form method="post">';
     echo '<input type="hidden" name="export_to_slack" value="1">';
     echo '<button type="submit" class="button button-primary">Slack</button>';
+    echo '</form>';
+
+    echo "<h3>commitnout plugin-readme.md</h3>";
+    echo '<form method="post">';
+    echo '<input type="hidden" name="export_plugins_info" value="1">';
+    echo '<button type="submit" class="button button-primary">GitHub</button>';
     echo '</form>';
 
     // Výpis odpovědi po exportu
