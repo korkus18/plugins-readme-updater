@@ -9,6 +9,9 @@ date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
 require_once plugin_dir_path(__FILE__) . 'github-settings.php';
 require_once plugin_dir_path(__FILE__) . 'environment-settings.php';
 require_once plugin_dir_path(__FILE__) . 'plugins-update-checker.php';
+require_once plugin_dir_path(__FILE__) . 'slack-settings.php';
+
+
 
 
 
@@ -80,7 +83,14 @@ add_action('admin_menu', function () {
         'dashicons-admin-generic', // Ikona
         100 // Pozice v menu
     );
-
+    add_submenu_page(
+        'plugins-readme-updater', // Slug hlavní stránky
+        'Plugins Update Checker', // Titulek stránky
+        'Plugins to update', // Název v menu
+        'manage_options', // Oprávnění
+        'plugins-update-checker', // Slug submenu
+        'render_plugins_update_checker_page' // Callback funkce pro vykreslení obsahu stránky
+    );
     // Submenu pro admin settings
     add_submenu_page(
         'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
@@ -93,20 +103,20 @@ add_action('admin_menu', function () {
 
     add_submenu_page(
         'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
-        'Nastavení prostředí', // Titulek stránky
-        'Nastavení prostředí', // Název v menu
+        'Environment settings', // Titulek stránky
+        'Environment settings', // Název v menu
         'manage_options', // Potřebná oprávnění
         'environment-settings', // Slug stránky
         'render_environment_settings_page' // Callback pro obsah stránky
     );
 
     add_submenu_page(
-        'plugins-readme-updater', // Slug hlavní stránky
-        'Plugins Update Checker', // Titulek stránky
-        'Plugins to update', // Název v menu
+        'plugins-readme-updater', // Nadřazená stránka (hlavní menu pluginu)
+        'Slack Settings', // Titulek stránky
+        'Slack Settings', // Název v menu
         'manage_options', // Oprávnění
-        'plugins-update-checker', // Slug submenu
-        'render_plugins_update_checker_page' // Callback funkce pro vykreslení obsahu stránky
+        'slack-settings', // Slug submenu
+        'render_slack_settings_page' // Callback funkce pro zobrazení stránky
     );
 });
 
@@ -169,7 +179,13 @@ function render_export_plugins_page() {
     // Formulář pro export
     echo '<form method="post">';
     echo '<input type="hidden" name="export_plugins_info" value="1">';
-    echo '<button type="submit" class="button button-primary">Exportovat Informace o Pluginech</button>';
+    echo '<button type="submit" class="button button-primary">GitHub</button>';
+    echo '</form>';
+
+
+    echo '<form method="post">';
+    echo '<input type="hidden" name="export_to_slack" value="1">';
+    echo '<button type="submit" class="button button-primary">Slack</button>';
     echo '</form>';
 
     // Výpis odpovědi po exportu
@@ -257,6 +273,7 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
 }
 
 
+
 // Parametry
 $environment = isset($_POST['environment']) ? sanitize_text_field($_POST['environment']) : 'production';
 $file_path = wp_upload_dir()['basedir'] . '/' . $environment . '-plugins-readme.md';
@@ -270,4 +287,36 @@ $username = get_option('github_username', '');
 $response = upload_to_github_with_filepath($file_path, $repo, $branch, $token, $username); // Ujistěte se, že voláte správnou funkci
 echo $response;
 
+
+
+
+function send_export_to_slack($message) {
+    $slack_webhook_url = get_option('slack_webhook_url', ''); // Slack webhook URL uložená v databázi
+
+    if (empty($slack_webhook_url)) {
+        return '<div class="error"><p>Chyba: Slack webhook URL není nastavena.</p></div>';
+    }
+
+    $payload = json_encode(['text' => $message]);
+
+    $args = [
+        'body'        => $payload,
+        'headers'     => ['Content-Type' => 'application/json'],
+        'timeout'     => 30,
+    ];
+
+    $response = wp_remote_post($slack_webhook_url, $args);
+
+    if (is_wp_error($response)) {
+        return '<div class="error"><p>Chyba při odesílání na Slack: ' . $response->get_error_message() . '</p></div>';
+    } else {
+        return '<div class="updated"><p>Export úspěšně odeslán na Slack.</p></div>';
+    }
+}
+
+if (isset($_POST['export_to_slack'])) {
+    $message = get_plugins_update_report(); // Načteme správný výpis pluginů
+    $response = send_export_to_slack($message); // Pošleme report na Slack
+    echo $response;
+}
 

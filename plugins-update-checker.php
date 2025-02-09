@@ -1,4 +1,8 @@
 <?php
+if (!function_exists('wp_get_current_user')) {
+    require_once ABSPATH . 'wp-includes/pluggable.php';
+}
+
 // Nastavení časového pásma podle WordPressu
 date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
 
@@ -7,6 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Funkce pro vykreslení administrační stránky
 function render_plugins_update_checker_page() {
     ?>
     <div class="wrap">
@@ -16,72 +21,165 @@ function render_plugins_update_checker_page() {
     <?php
 }
 
+// Funkce pro kontrolu aktualizací pluginů, šablon a WordPressu
 function plugins_update_checker() {
     if (!current_user_can('manage_options')) {
         return;
     }
 
-    // ❗ Resetujeme cache WordPressu pro update pluginů
+    // ❗ Resetujeme cache pro všechny aktualizace
     delete_site_transient('update_plugins');
+    delete_site_transient('update_themes');
+    delete_site_transient('update_core');
 
-    // ❗ Vynutíme okamžitou kontrolu aktualizací pluginů
+    // ❗ Vynutíme kontrolu aktualizací
     wp_update_plugins();
+    wp_update_themes();
+    wp_version_check();
 
-    // ❗ Získáme nejnovější stav aktualizací
-    $updates = get_site_transient('update_plugins');
+    // ❗ Získáme aktualizace
+    $updates_plugins = get_site_transient('update_plugins');
+    $updates_themes = get_site_transient('update_themes');
+    $updates_core = get_site_transient('update_core');
+
     $plugins = get_plugins();
-    $plugin_list = array();
+    $themes = wp_get_themes();
+    $core_version = get_bloginfo('version');
+
+    $plugin_list = [];
+    $theme_list = [];
+    $core_update_available = false;
     $i = 1;
 
-    // Získání správného časového pásma z WordPressu
-    $timezone = wp_timezone();
-
-    $timezone_string = get_option('timezone_string');
-
-    // Pokud není časové pásmo nastavené, použij Europe/Prague
-    if (!$timezone_string) {
-        $timezone_string = 'Europe/Prague';
+    // ✅ Kontrola dostupnosti aktualizací WordPressu
+    if ($updates_core && isset($updates_core->updates) && !empty($updates_core->updates)) {
+        foreach ($updates_core->updates as $update) {
+            if (isset($update->version) && version_compare($core_version, $update->version, '<')) {
+                $core_update_available = "WordPress Core (aktuální: $core_version → nová: $update->version)";
+            }
+        }
     }
 
-    // Vytvoření objektu časového pásma
-    $timezone = new DateTimeZone($timezone_string);
-    $datetime = new DateTime("now", $timezone);
-    $revision_time = $datetime->format("Y-m-d H:i");
-
-
-    // Uložení do pole
-    $plugin_list["revision"] = $revision_time;
-
-    // Pokud jsou dostupné aktualizace, uložíme je do seznamu
-    if ($updates && !empty($updates->response)) {
+    // ✅ Kontrola dostupnosti aktualizací pluginů
+    if ($updates_plugins && !empty($updates_plugins->response)) {
         foreach ($plugins as $name => $plugin) {
-            $plugin_list["plugins"][$i]["id"] = $name;
-            $plugin_list["plugins"][$i]["name"] = $plugin["Name"];
-            $plugin_list["plugins"][$i]["current_version"] = $plugin["Version"];
-
-            if (isset($updates->response[$name])) {
-                $plugin_list["plugins"][$i]["update_available"] = "yes";
-                $plugin_list["plugins"][$i]["version"] = $updates->response[$name]->new_version;
-            } else {
-                $plugin_list["plugins"][$i]["update_available"] = "no";
-            }
-            $i++;
-        }
-    }
-
-    // Vytvoření výstupu na stránce v adminu
-    $revision = isset($plugin_list['revision']) ? $plugin_list['revision'] : 'nothing to update';
-    $string = sprintf("Revision: %s\n\n", $revision);
-
-    if (isset($plugin_list['plugins']) && is_array($plugin_list['plugins'])) {
-        foreach ($plugin_list['plugins'] as $item) {
-            if ('yes' == $item['update_available']) {
-                $format = "\n%s\n%s -> %s\n----------------------------------";
-                $string .= sprintf($format, $item['name'], $item['current_version'], $item['version']);
+            if (isset($updates_plugins->response[$name])) {
+                $plugin_list[] = "* " . $plugin["Name"] . " (aktuální: " . $plugin["Version"] . " → nová: " . $updates_plugins->response[$name]->new_version . ")";
             }
         }
     }
 
-    // Výpis do stránky
-    echo $string;
+    // ✅ Kontrola dostupnosti aktualizací šablon
+    if ($updates_themes && !empty($updates_themes->response)) {
+        foreach ($themes as $slug => $theme) {
+            if (isset($updates_themes->response[$slug])) {
+                $theme_list[] = "* " . $theme->get('Name') . " (aktuální: " . $theme->get('Version') . " → nová: " . $updates_themes->response[$slug]['new_version'] . ")";
+            }
+        }
+    }
+
+    // ✅ Sestavení výpisu do stránky
+    echo "🔍 **WordPress Update Report**\n\n";
+
+    if ($core_update_available) {
+        echo "⚠️ **Dostupná aktualizace WordPress Core:**\n$core_update_available\n\n";
+    } else {
+        echo "✅ WordPress je aktuální.\n\n";
+    }
+
+    if (!empty($plugin_list)) {
+        echo "🔧 **Pluginy s dostupnými aktualizacemi:**\n" . implode("\n", $plugin_list) . "\n\n";
+    } else {
+        echo "✅ Všechny pluginy jsou aktuální.\n\n";
+    }
+
+    if (!empty($theme_list)) {
+        echo "🎨 **Šablony s dostupnými aktualizacemi:**\n" . implode("\n", $theme_list) . "\n\n";
+    } else {
+        echo "✅ Všechny šablony jsou aktuální.\n";
+    }
+}
+
+// ❗ Funkce pro získání seznamu aktualizací (export pro Slack)
+function get_plugins_update_report() {
+    if (!function_exists('wp_get_current_user')) {
+        require_once ABSPATH . 'wp-includes/pluggable.php';
+    }
+
+    if (!current_user_can('manage_options')) {
+        return 'Nemáš oprávnění pro zobrazení tohoto reportu.';
+    }
+
+    // ❗ Resetujeme cache pro všechny aktualizace
+    delete_site_transient('update_plugins');
+    delete_site_transient('update_themes');
+    delete_site_transient('update_core');
+
+    // ❗ Vynutíme kontrolu aktualizací
+    wp_update_plugins();
+    wp_update_themes();
+    wp_version_check();
+
+    // ❗ Získáme aktualizace
+    $updates_plugins = get_site_transient('update_plugins');
+    $updates_themes = get_site_transient('update_themes');
+    $updates_core = get_site_transient('update_core');
+
+    $plugins = get_plugins();
+    $themes = wp_get_themes();
+    $core_version = get_bloginfo('version');
+
+    $plugin_list = [];
+    $theme_list = [];
+    $core_update_available = false;
+
+    // ✅ Kontrola dostupnosti aktualizací WordPressu
+    if ($updates_core && isset($updates_core->updates) && !empty($updates_core->updates)) {
+        foreach ($updates_core->updates as $update) {
+            if (isset($update->version) && version_compare($core_version, $update->version, '<')) {
+                $core_update_available = "WordPress Core (aktuální: $core_version → nová: $update->version)";
+            }
+        }
+    }
+
+    // ✅ Kontrola dostupnosti aktualizací pluginů
+    if ($updates_plugins && !empty($updates_plugins->response)) {
+        foreach ($plugins as $name => $plugin) {
+            if (isset($updates_plugins->response[$name])) {
+                $plugin_list[] = "* " . $plugin["Name"] . " (aktuální: " . $plugin["Version"] . " → nová: " . $updates_plugins->response[$name]->new_version . ")";
+            }
+        }
+    }
+
+    // ✅ Kontrola dostupnosti aktualizací šablon
+    if ($updates_themes && !empty($updates_themes->response)) {
+        foreach ($themes as $slug => $theme) {
+            if (isset($updates_themes->response[$slug])) {
+                $theme_list[] = "* " . $theme->get('Name') . " (aktuální: " . $theme->get('Version') . " → nová: " . $updates_themes->response[$slug]['new_version'] . ")";
+            }
+        }
+    }
+
+    // ✅ Sestavení zprávy pro Slack
+    $report = "*WordPress Update Report*\n\n";
+
+    if ($core_update_available) {
+        $report .= "⚠️ *Dostupná aktualizace WordPress Core:*\n$core_update_available\n\n";
+    } else {
+        $report .= "✅ WordPress je aktuální.\n\n";
+    }
+
+    if (!empty($plugin_list)) {
+        $report .= "🔧 *Pluginy s dostupnými aktualizacemi:*\n" . implode("\n", $plugin_list) . "\n\n";
+    } else {
+        $report .= "✅ Všechny pluginy jsou aktuální.\n\n";
+    }
+
+    if (!empty($theme_list)) {
+        $report .= "🎨 *Šablony s dostupnými aktualizacemi:*\n" . implode("\n", $theme_list) . "\n\n";
+    } else {
+        $report .= "✅ Všechny šablony jsou aktuální.\n";
+    }
+
+    return $report;
 }
