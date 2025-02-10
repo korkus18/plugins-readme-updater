@@ -91,16 +91,6 @@ add_action('admin_menu', function () {
         'plugins-update-checker', // Slug submenu
         'render_plugins_update_checker_page' // Callback funkce pro vykreslení obsahu stránky
     );
-    // Submenu pro admin settings
-    add_submenu_page(
-        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
-        'Github Settings', // Titulek stránky
-        'Github Settings', // Název v submenu
-        'manage_options', // Potřebné oprávnění
-        'Github-settings', // Slug submenu
-        'render_admin_settings_page' // Callback pro obsah stránky
-    );
-
     add_submenu_page(
         'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
         'Environment settings', // Titulek stránky
@@ -109,7 +99,6 @@ add_action('admin_menu', function () {
         'environment-settings', // Slug stránky
         'render_environment_settings_page' // Callback pro obsah stránky
     );
-
     add_submenu_page(
         'plugins-readme-updater', // Nadřazená stránka (hlavní menu pluginu)
         'Slack Settings', // Titulek stránky
@@ -117,6 +106,14 @@ add_action('admin_menu', function () {
         'manage_options', // Oprávnění
         'slack-settings', // Slug submenu
         'render_slack_settings_page' // Callback funkce pro zobrazení stránky
+    );
+    add_submenu_page(
+        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
+        'Github Settings', // Titulek stránky
+        'Github Settings', // Název v submenu
+        'manage_options', // Potřebné oprávnění
+        'Github-settings', // Slug submenu
+        'render_admin_settings_page' // Callback pro obsah stránky
     );
 });
 
@@ -175,34 +172,25 @@ function render_export_plugins_page() {
     $slack_recipient = get_option('slack_recipient', '');
 
     echo '<div class="wrap" style="max-width: 600px; margin: 0 auto;">';
-    echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">🔧 Plugins Readme Updater</h1>';
+    echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">🔧SLA plugin</h1>';
 
-    // 🔹 Slack příjemce
+if ($environment === 'staging') {
+    // 🔹 Slack plugins info
     echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
-    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📢 Slack Zpráva</h2>';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📢 Slack plugins update info</h2>';
     echo '<form method="post">';
-    echo '<label for="slack_recipient" style="display: block; font-size: 14px; margin-bottom: 5px;">Příjemce:</label>';
+    echo '<label for="slack_recipient" style="display: block; font-size: 14px; margin-bottom: 5px;">Reviewer:</label>';
     echo '<input type="text" id="slack_recipient" name="slack_recipient" value="' . esc_attr($slack_recipient) . '" placeholder="@Petr nebo @team" style="width: 100%; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">';
     echo '<input type="hidden" name="save_slack_recipient" value="1">';
     echo '<button type="submit" class="button" style="margin-top: 10px;">Uložit</button>';
     echo '</form>';
-    echo '</div>';
-
-    // 🔹 Poznámka k update reportu
-    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
-    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📝 Poznámka k update reportu</h2>';
     echo '<form method="post">';
     echo '<label for="update_note" style="display: block; font-size: 14px; margin-bottom: 5px;">Poznámka:</label>';
-    echo '<textarea id="update_note" name="update_note" placeholder="Doplňující informace..." style="width: 100%; height: 60px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">' . esc_textarea(get_option('update_note', '')) . '</textarea>';
+    echo '<textarea id="update_note" name="update_note" placeholder="Doplňující informace..." style="width: 100%; height: 100px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">' . esc_textarea(get_option('update_note', '')) . '</textarea>';
     echo '<input type="hidden" name="save_update_note" value="1">';
     echo '<button type="submit" class="button" style="margin-top: 10px;">Uložit</button>';
     echo '</form>';
-    echo '</div>';
-
-
-    // 🔹 Export na Slack
-    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
-    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📤 Export na Slack</h2>';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📤 Odeslat informace o pluginech na Slack</h2>';
     echo '<form method="post" id="slackExportForm">';
     echo '<input type="hidden" name="export_to_slack" value="1">';
     echo '<button type="submit" id="export_to_slack_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Odeslat na Slack</button>';
@@ -210,15 +198,36 @@ function render_export_plugins_page() {
     echo '</div>';
 
 
-// 🔹 Export na GitHub
-echo '<div style="padding: 15px 0;">';
-echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Commit na GitHub</h2>';
-echo '<form method="post" id="githubExportForm">';
-echo '<input type="hidden" name="export_plugins_info" value="1">';
-echo '<button type="submit" id="export_to_github_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Commitnout na GitHub</button>';
-echo '</form>';
-echo '<div id="githubSuccessMessage" style="display: none; margin-top: 10px; padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">✅ Commit úspěšně proveden na GitHub!</div>';
-echo '</div>';
+
+
+    // 🔹 Slack kontrola webu
+    echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">💬 Kontrola webu</h2>';
+    echo '<form method="post">';
+    echo '<label for="slack_thread_message" style="display: block; font-size: 14px; margin-bottom: 5px;">Infromace o kontrole webu:</label>';
+    echo '<textarea id="slack_thread_message" name="slack_thread_message" placeholder="Napište zprávu do threadu..." style="width: 100%; height: 160px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;">' . esc_textarea(get_option('slack_thread_message', '')) . '</textarea>';
+    echo '<input type="hidden" name="save_slack_thread_message" value="1">';
+    echo '<button type="submit" class="button" style="margin-top: 10px;">Uložit</button>';
+    echo '</form>';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📩 Odeslat informace o Kontrole webu</h2>';
+    echo '<form method="post" id="slackThreadForm">';
+    echo '<input type="hidden" name="send_to_slack_thread" value="1">';
+    echo '<button type="submit" id="send_to_slack_thread_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Odeslat do threadu</button>';
+    echo '</form>';
+    echo '</div>';
+
+}
+
+    // 🔹 GitHub .md update
+    echo '<div style="padding: 15px 0;">';
+    echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Updatnout ' . esc_html($environment) . '-plugins-readme.md</h2>';
+    echo '<form method="post" id="githubExportForm">';
+    echo '<input type="hidden" name="export_plugins_info" value="1">';
+    echo '<button type="submit" id="export_to_github_button" class="button button-primary" style="width: 100%; padding: 10px; font-size: 15px;">Commitnout na GitHub</button>';
+    echo '</form>';
+    echo '<div id="githubSuccessMessage" style="display: none; margin-top: 10px; padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 5px;">✅ Commit úspěšně proveden na GitHub!</div>';
+    echo '</div>';
+
 
 
 
@@ -229,6 +238,12 @@ echo '</div>';
     }
 
     echo '</div>';
+}
+// Uložení nové zprávy do threadu po odeslání formuláře
+if (isset($_POST['save_slack_thread_message'])) {
+    $slack_thread_message = sanitize_textarea_field($_POST['slack_thread_message']);
+    update_option('slack_thread_message', $slack_thread_message);
+    echo '<div class="updated"><p>Zpráva do threadu byla uložena.</p></div>';
 }
 
 
@@ -333,60 +348,123 @@ echo $response;
 
 
 function send_export_to_slack($message) {
-    $slack_webhook_url = get_option('slack_webhook_url', ''); // Slack webhook URL uložená v databázi
+    $slack_token = get_option('slack_oauth_token', ''); // OAuth Token
+    $slack_channel = get_option('slack_channel_id', ''); // ID kanálu
 
-    if (empty($slack_webhook_url)) {
-        return '<div class="error"><p>Chyba: Slack webhook URL není nastavena.</p></div>';
+    if (empty($slack_token) || empty($slack_channel)) {
+        return '<div class="error"><p>Chyba: Slack OAuth token nebo channel ID není nastaveno.</p></div>';
     }
 
-    $payload = json_encode(['text' => $message]);
+    // API URL pro odesílání zprávy
+    $url = "https://slack.com/api/chat.postMessage";
 
-    $args = [
-        'body'        => $payload,
-        'headers'     => ['Content-Type' => 'application/json'],
-        'timeout'     => 30,
+    // Data zprávy
+    $data = [
+        'channel' => $slack_channel,
+        'text' => $message
     ];
 
-    $response = wp_remote_post($slack_webhook_url, $args);
+    $args = [
+        'body'    => json_encode($data),
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . $slack_token,
+        ],
+        'timeout' => 30,
+    ];
 
+    $response = wp_remote_post($url, $args);
     if (is_wp_error($response)) {
         return '<div class="error"><p>Chyba při odesílání na Slack: ' . $response->get_error_message() . '</p></div>';
+    }
+
+    $response_body = wp_remote_retrieve_body($response);
+    $decoded_response = json_decode($response_body, true);
+
+    if (!empty($decoded_response['ok']) && !empty($decoded_response['ts'])) {
+        update_option('slack_thread_ts', $decoded_response['ts']); // Uložit thread timestamp
+        return '<div class="updated"><p>Zpráva úspěšně odeslána na Slack.</p></div>';
     } else {
-        return '<div class="updated"><p>Export úspěšně odeslán na Slack.</p></div>';
+        return '<div class="error"><p>Chyba: Nepodařilo se získat `thread_ts`.</p></div>';
     }
 }
+
 
 if (isset($_POST['export_to_slack'])) {
     $message = get_plugins_update_report(); // Načteme správný výpis pluginů
     $response = send_export_to_slack($message); // Pošleme report na Slack
     echo $response;
 }
+if (isset($_POST['send_to_slack_thread'])) {
+    $message = get_option('slack_thread_message', '');
+    if (!empty($message)) {
+        $response = send_message_to_slack_thread($message);
+        echo $response;
+    } else {
+        echo '<div class="error"><p>Chyba: Zpráva do threadu nemůže být prázdná.</p></div>';
+    }
+}
+
+
+function send_message_to_slack_thread($message) {
+    $slack_token = get_option('slack_oauth_token', '');
+    $slack_channel = get_option('slack_channel_id', '');
+    $thread_ts = get_option('slack_thread_ts', ''); // Načíst uložený timestamp zprávy
+
+    if (empty($slack_token) || empty($slack_channel) || empty($thread_ts)) {
+        return '<div class="error"><p>Chyba: Nelze odeslat zprávu do threadu. Chybí OAuth token, channel ID nebo hlavní zpráva.</p></div>';
+    }
+
+    $url = "https://slack.com/api/chat.postMessage";
+
+    $data = [
+        'channel'   => $slack_channel,
+        'text'      => $message,
+        'thread_ts' => $thread_ts // Odeslat jako odpověď do threadu
+    ];
+
+    $args = [
+        'body'    => json_encode($data),
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . $slack_token,
+        ],
+        'timeout' => 30,
+    ];
+
+    $response = wp_remote_post($url, $args);
+    if (is_wp_error($response)) {
+        return '<div class="error"><p>Chyba při odesílání do threadu na Slack: ' . $response->get_error_message() . '</p></div>';
+    }
+
+    return '<div class="updated"><p>Zpráva úspěšně odeslána do threadu na Slack.</p></div>';
+}
 
 // JavaScript pro změnu textu tlačítek při odeslání
 echo '<script>
     document.addEventListener("DOMContentLoaded", function () {
-        function handleFormSubmit(formId, buttonId, buttonText) {
+        const buttonsConfig = [
+            { formId: "slackExportForm", buttonId: "export_to_slack_button", buttonText: "Odesílám..." },
+            { formId: "githubExportForm", buttonId: "export_to_github_button", buttonText: "Commituji..." },
+            { formId: "slackThreadForm", buttonId: "send_to_slack_thread_button", buttonText: "Odesílám..." }
+        ];
+
+        buttonsConfig.forEach(({ formId, buttonId, buttonText }) => {
             let form = document.getElementById(formId);
             let button = document.getElementById(buttonId);
 
-            if (form) {
+            if (form && button) {
                 form.addEventListener("submit", function () {
                     button.disabled = true;
-                    button.innerText = buttonText; // Změna textu tlačítka
+                    button.innerText = buttonText;
 
                     setTimeout(() => {
-                        button.innerText = buttonText.replace("...", "nout"); // Obnova textu tlačítka
-                        button.disabled = false; // Opětovná aktivace tlačítka
-                    }, 1000); //
+                        button.innerText = buttonText.replace("...", "nout");
+                        button.disabled = false;
+                    }, 2000);
                 });
             }
-        }
-
-        // Aplikace na Slack tlačítko
-        handleFormSubmit("slackExportForm", "export_to_slack_button", "Odesílám...");
-
-        // Aplikace na GitHub tlačítko
-        handleFormSubmit("githubExportForm", "export_to_github_button", "Commituji...");
+        });
     });
 </script>';
 

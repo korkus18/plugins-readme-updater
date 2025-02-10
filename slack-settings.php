@@ -14,18 +14,28 @@ if (isset($_POST['save_slack_settings'])) {
 function render_slack_settings_page() {
     ?>
     <div class="wrap">
-        <h2>Nastavení Slack Webhook</h2>
+        <h2>Slack Settings</h2>
         <form method="post">
             <table class="form-table">
                 <tr>
-                    <th scope="row"><label for="slack_webhook_url">Slack Webhook URL:</label></th>
-                    <td>
-                        <input type="text" id="slack_webhook_url" name="slack_webhook_url" value="<?php echo esc_attr(get_option('slack_webhook_url', '')); ?>" class="large-text">
-                    </td>
+                    <th scope="row"><label for="slack_oauth_token">Slack OAuth Token:</label></th>
+                    <td><input type="password" id="slack_oauth_token" name="slack_oauth_token" value="<?php echo esc_attr(get_option('slack_oauth_token', '')); ?>" required></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="slack_channel_id">Slack Channel ID:</label></th>
+                    <td><input type="text" id="slack_channel_id" name="slack_channel_id" value="<?php echo esc_attr(get_option('slack_channel_id', '')); ?>" required></td>
                 </tr>
             </table>
-            <button type="submit" name="save_slack_settings" class="button button-primary">Uložit</button>
+            <button type="submit" class="button button-primary">Uložit</button>
         </form>
     </div>
     <?php
+
+    if (isset($_POST['slack_oauth_token'])) {
+        update_option('slack_oauth_token', sanitize_text_field($_POST['slack_oauth_token']));
+    }
+
+    if (isset($_POST['slack_channel_id'])) {
+        update_option('slack_channel_id', sanitize_text_field($_POST['slack_channel_id']));
+    }
 }

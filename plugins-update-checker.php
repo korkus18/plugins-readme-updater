@@ -79,7 +79,7 @@ function plugins_update_checker() {
     }
 
     // ✅ Sestavení výpisu do admin stránky
-    echo " Web: $site_title\n\n";
+    echo " *Web: <$site_url|$site_title>*\n\n";
 
     if (!empty($plugin_list)) {
         echo " Plugins:\n" . implode("\n", $plugin_list) . "\n\n";
@@ -139,6 +139,7 @@ function get_plugins_update_report() {
     $themes = wp_get_themes();
     $core_version = get_bloginfo('version');
     $site_title = get_bloginfo('name');
+    $site_url = get_bloginfo('url');
 
     $plugin_list = [];
     $theme_list = [];
@@ -172,7 +173,7 @@ function get_plugins_update_report() {
     }
 
     // ✅ Sestavení zprávy pro Slack
-    $report = " *Web: $site_title*\n\n";
+    $report = " *Web: <$site_url|$site_title>*\n\n";
 
     // ✅ Přidání označení osoby na začátek zprávy
     if (!empty($slack_recipient)) {
