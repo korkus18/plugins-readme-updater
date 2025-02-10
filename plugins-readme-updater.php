@@ -75,8 +75,8 @@ function export_plugins_info_to_markdown($environment = '') {
 add_action('admin_menu', function () {
     // Hlavní položka v admin menu
     add_menu_page(
-        'Plugins Readme Updater', // Titulek stránky
-        'Plugins Readme Updater', // Název v menu
+        'SLA Argo22', // Titulek stránky
+        'SLA Argo22', // Název v menu
         'manage_options', // Potřebné oprávnění
         'plugins-readme-updater', // Slug stránky
         'render_export_plugins_page', // Callback pro obsah stránky
@@ -172,7 +172,7 @@ function render_export_plugins_page() {
     $slack_recipient = get_option('slack_recipient', '');
 
     echo '<div class="wrap" style="max-width: 600px; margin: 0 auto;">';
-    echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">🔧SLA plugin</h1>';
+    echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">SLA Argo22</h1>';
 
 if ($environment === 'staging') {
     // 🔹 Slack plugins info

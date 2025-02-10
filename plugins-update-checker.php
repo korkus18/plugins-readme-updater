@@ -79,7 +79,7 @@ function plugins_update_checker() {
     }
 
     // ✅ Sestavení výpisu do admin stránky
-    echo " *Web: <$site_url|$site_title>*\n\n";
+    echo " Web: $site_title\n\n";
 
     if (!empty($plugin_list)) {
         echo " Plugins:\n" . implode("\n", $plugin_list) . "\n\n";
