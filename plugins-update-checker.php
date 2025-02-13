@@ -1,4 +1,11 @@
 <?php
+/**
+ * Plugin Name: SLA plugin
+ * Description: Automates README updates for plugins, ensuring consistency and Slack integration for notifications.
+ * Version: 1.0.0
+ * Author: Argo22 by Jakub Korous
+ */
+
 if (!function_exists('wp_get_current_user')) {
     require_once ABSPATH . 'wp-includes/pluggable.php';
 }
@@ -51,7 +58,7 @@ function plugins_update_checker() {
     $theme_list = [];
     $core_update_available = false;
 
-    // ✅ Kontrola dostupnosti aktualizací pluginů
+    // Kontrola dostupnosti aktualizací pluginů
     if ($updates_plugins && !empty($updates_plugins->response)) {
         foreach ($plugins as $name => $plugin) {
             if (isset($updates_plugins->response[$name])) {
@@ -60,7 +67,7 @@ function plugins_update_checker() {
         }
     }
 
-    // ✅ Kontrola dostupnosti aktualizací WordPressu
+    // Kontrola dostupnosti aktualizací WordPressu
     if ($updates_core && isset($updates_core->updates) && !empty($updates_core->updates)) {
         foreach ($updates_core->updates as $update) {
             if (isset($update->version) && version_compare($core_version, $update->version, '<')) {
@@ -69,7 +76,7 @@ function plugins_update_checker() {
         }
     }
 
-    // ✅ Kontrola dostupnosti aktualizací šablon
+    // Kontrola dostupnosti aktualizací šablon
     if ($updates_themes && !empty($updates_themes->response)) {
         foreach ($themes as $slug => $theme) {
             if (isset($updates_themes->response[$slug])) {
@@ -78,7 +85,7 @@ function plugins_update_checker() {
         }
     }
 
-    // ✅ Sestavení výpisu do admin stránky
+    // Sestavení výpisu do admin stránky
     echo " Web: $site_title\n\n";
 
     if (!empty($plugin_list)) {
@@ -101,7 +108,7 @@ function plugins_update_checker() {
 }
 
 
-// ❗ Funkce pro získání seznamu aktualizací (export pro Slack)
+// Funkce pro získání seznamu aktualizací (export pro Slack)
 function get_plugins_update_report() {
     if (!function_exists('wp_get_current_user')) {
         require_once ABSPATH . 'wp-includes/pluggable.php';
@@ -111,26 +118,26 @@ function get_plugins_update_report() {
         return 'Nemáš oprávnění pro zobrazení tohoto reportu.';
     }
 
-    // ❗ Získání uložených hodnot
+    // Získání uložených hodnot
     $slack_recipient = get_option('slack_recipient', '');
     $update_note = get_option('update_note', '');
 
-    // ❗ Pokud uživatel zadal jen "@uživatel", Slack to nemusí správně zpracovat
+    // Pokud uživatel zadal jen "@uživatel", Slack to nemusí správně zpracovat
     if (!empty($slack_recipient) && strpos($slack_recipient, '<@') === false) {
         $slack_recipient = "<" . trim($slack_recipient) . ">";
     }
 
-    // ❗ Resetujeme cache pro všechny aktualizace
+    // Resetujeme cache pro všechny aktualizace
     delete_site_transient('update_plugins');
     delete_site_transient('update_themes');
     delete_site_transient('update_core');
 
-    // ❗ Vynutíme kontrolu aktualizací
+    // Vynutíme kontrolu aktualizací
     wp_update_plugins();
     wp_update_themes();
     wp_version_check();
 
-    // ❗ Získáme aktualizace
+    // Získáme aktualizace
     $updates_plugins = get_site_transient('update_plugins');
     $updates_themes = get_site_transient('update_themes');
     $updates_core = get_site_transient('update_core');
@@ -145,7 +152,7 @@ function get_plugins_update_report() {
     $theme_list = [];
     $core_update_available = false;
 
-    // ✅ Kontrola dostupnosti aktualizací pluginů
+    // Kontrola dostupnosti aktualizací pluginů
     if ($updates_plugins && !empty($updates_plugins->response)) {
         foreach ($plugins as $name => $plugin) {
             if (isset($updates_plugins->response[$name])) {
@@ -154,7 +161,7 @@ function get_plugins_update_report() {
         }
     }
 
-    // ✅ Kontrola dostupnosti aktualizací WordPressu
+    // Kontrola dostupnosti aktualizací WordPressu
     if ($updates_core && isset($updates_core->updates) && !empty($updates_core->updates)) {
         foreach ($updates_core->updates as $update) {
             if (isset($update->version) && version_compare($core_version, $update->version, '<')) {
@@ -163,7 +170,7 @@ function get_plugins_update_report() {
         }
     }
 
-    // ✅ Kontrola dostupnosti aktualizací šablon
+    // Kontrola dostupnosti aktualizací šablon
     if ($updates_themes && !empty($updates_themes->response)) {
         foreach ($themes as $slug => $theme) {
             if (isset($updates_themes->response[$slug])) {
@@ -172,10 +179,10 @@ function get_plugins_update_report() {
         }
     }
 
-    // ✅ Sestavení zprávy pro Slack
+    // Sestavení zprávy pro Slack
     $report = " *Web: <$site_url|$site_title>*\n\n";
 
-    // ✅ Přidání označení osoby na začátek zprávy
+    // Přidání označení osoby na začátek zprávy
     if (!empty($slack_recipient)) {
         $report = "$slack_recipient\n\n" . $report;
     }
@@ -198,7 +205,7 @@ function get_plugins_update_report() {
         $report .= " *Themes:*\n   ✅ Všechny šablony jsou aktuální.\n";
     }
 
-    // ✅ Přidání poznámky k updatům, pokud existuje
+    // Přidání poznámky k updatům, pokud existuje
     if (!empty($update_note)) {
         $report .= "\n *Poznámka:*\n$update_note";
     }

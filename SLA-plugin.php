@@ -1,10 +1,11 @@
 <?php
 /**
- * Plugin Name: Plugins-readme-updater
- * Description: Exportuje informace o nainstalovaných pluginech do .md.
+ * Plugin Name: SLA plugin
+ * Description: Automates README updates for plugins, ensuring consistency and Slack integration for notifications.
  * Version: 1.0.0
  * Author: Argo22 by Jakub Korous
  */
+
 date_default_timezone_set(get_option('timezone_string') ?: 'Europe/Prague');
 require_once plugin_dir_path(__FILE__) . 'github-settings.php';
 require_once plugin_dir_path(__FILE__) . 'environment-settings.php';
@@ -75,45 +76,45 @@ function export_plugins_info_to_markdown($environment = '') {
 add_action('admin_menu', function () {
     // Hlavní položka v admin menu
     add_menu_page(
-        'SLA Argo22', // Titulek stránky
-        'SLA Argo22', // Název v menu
-        'manage_options', // Potřebné oprávnění
-        'plugins-readme-updater', // Slug stránky
-        'render_export_plugins_page', // Callback pro obsah stránky
-        'dashicons-admin-generic', // Ikona
-        100 // Pozice v menu
+        'SLA Argo22',
+        'SLA Argo22',
+        'manage_options',
+        'SLA-plugin',
+        'render_export_plugins_page',
+        'dashicons-admin-generic',
+        1
     );
     add_submenu_page(
-        'plugins-readme-updater', // Slug hlavní stránky
-        'Plugins Update Checker', // Titulek stránky
-        'Plugins to update', // Název v menu
-        'manage_options', // Oprávnění
-        'plugins-update-checker', // Slug submenu
-        'render_plugins_update_checker_page' // Callback funkce pro vykreslení obsahu stránky
+        'SLA-plugin',
+        'Plugins Update Checker',
+        'Plugins to update',
+        'manage_options',
+        'plugins-update-checker',
+        'render_plugins_update_checker_page'
     );
     add_submenu_page(
-        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
-        'Environment settings', // Titulek stránky
-        'Environment settings', // Název v menu
-        'manage_options', // Potřebná oprávnění
-        'environment-settings', // Slug stránky
-        'render_environment_settings_page' // Callback pro obsah stránky
+        'SLA-plugin',
+        'Environment settings',
+        'Environment settings',
+        'manage_options',
+        'environment-settings',
+        'render_environment_settings_page'
     );
     add_submenu_page(
-        'plugins-readme-updater', // Nadřazená stránka (hlavní menu pluginu)
-        'Slack Settings', // Titulek stránky
-        'Slack Settings', // Název v menu
-        'manage_options', // Oprávnění
-        'slack-settings', // Slug submenu
-        'render_slack_settings_page' // Callback funkce pro zobrazení stránky
+        'SLA-plugin',
+        'Slack Settings',
+        'Slack Settings',
+        'manage_options',
+        'slack-settings',
+        'render_slack_settings_page'
     );
     add_submenu_page(
-        'plugins-readme-updater', // Hlavní stránka, pod kterou submenu patří
-        'Github Settings', // Titulek stránky
-        'Github Settings', // Název v submenu
-        'manage_options', // Potřebné oprávnění
-        'Github-settings', // Slug submenu
-        'render_admin_settings_page' // Callback pro obsah stránky
+        'SLA-plugin',
+        'Github Settings',
+        'Github Settings',
+        'manage_options',
+        'Github-settings',
+        'render_admin_settings_page'
     );
 });
 
@@ -175,7 +176,7 @@ function render_export_plugins_page() {
     echo '<h1 style="font-size: 22px; font-weight: 600; margin-bottom: 20px;">SLA Argo22</h1>';
 
 if ($environment === 'staging') {
-    // 🔹 Slack plugins info
+    // Slack plugins info
     echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
     echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">📢 Slack plugins update info</h2>';
     echo '<form method="post">';
@@ -200,7 +201,7 @@ if ($environment === 'staging') {
 
 
 
-    // 🔹 Slack kontrola webu
+    // Slack kontrola webu
     echo '<div style="padding: 15px 0; border-bottom: 1px solid #ddd;">';
     echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">💬 Kontrola webu</h2>';
     echo '<form method="post">';
@@ -218,7 +219,7 @@ if ($environment === 'staging') {
 
 }
 
-    // 🔹 GitHub .md update
+    // GitHub .md update
     echo '<div style="padding: 15px 0;">';
     echo '<h2 style="font-size: 18px; font-weight: 500; margin-bottom: 10px;">🚀 Updatnout ' . esc_html($environment) . '-plugins-readme.md</h2>';
     echo '<form method="post" id="githubExportForm">';
@@ -271,7 +272,7 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
     // API URL pro soubor v kořenové složce repozitáře
     $url = "https://api.github.com/repos/$username/$repo/contents/$filename";
 
-    // 1. Získání SHA souboru
+    // Získání SHA souboru
     $headers = [
         "Authorization: token $token",
         "User-Agent: MyApp",
@@ -293,7 +294,7 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
         echo "Error: File does not exist or cannot retrieve SHA. Creating new file instead.\n";
     }
 
-    // 2. Kontrola, zda se obsah změnil
+    // Kontrola, zda se obsah změnil
     // Pokud soubor již existuje, porovnáme obsah
     if ($sha) {
         $existing_content = base64_decode($response_data['content']);
@@ -303,7 +304,7 @@ function upload_to_github_with_filepath($file_path, $repo, $branch, $token, $use
         }
     }
 
-    // 3. Nahrání obsahu (aktualizace nebo vytvoření)
+    // Nahrání obsahu (aktualizace nebo vytvoření)
     $environment = get_option('export_environment', 'production'); // Získání aktuálního prostředí
     $data = [
         'message' => 'update-plugins-readme.md-' . date('Y-m-d-H-i') . '-' . $environment,

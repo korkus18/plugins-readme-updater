@@ -2,7 +2,7 @@
 
 ## 📌 Co je tento plugin?
 
-Tento plugin automatizuje proces sledování aktualizací pluginů pro WordPress projekty v rámci SLA procesu. Umožňuje:
+Automatizuje aktualizaci souborů README pro pluginy, zajišťuje konzistenci dokumentace a usnadňuje údržbu informací o pluginu. Integrace se Slackem umožňuje notifikace o změnách a rychlou komunikaci v týmu.
 
 - **Export informací o pluginech na GitHub** pro dlouhodobé uchování a verzování.
 - **Odesílání informací na Slack**, aby tým věděl, které pluginy je potřeba aktualizovat.
@@ -58,12 +58,11 @@ V **GitHub Settings** nastavte:
 
 1. **Nastavíte Reviewera** a případnou poznámku pro Slack zprávu v hlavním menu pluginu.
 2. **Odešlete informaci o pluginech na Slack**, aby tým věděl, co se bude aktualizovat.
-3. **Po kontrole webu** reviewer zapíše informace do Slack threadu.
-4. **Commitnete změny na GitHub**, čímž se uloží aktuální seznam pluginů.
+3. **Commitnete změny na GitHub**, čímž se uloží aktuální seznam pluginů.
 
 ### 🚀 Na produkci
 
-Na produkčním prostředí máte dostupnou pouze možnost **commitnout aktuální stav pluginů na GitHub**.
+1. **commitnout aktuální stav pluginů na GitHub**, čímž se uloží aktualní seznam pluginů.
 
 ---
 

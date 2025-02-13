@@ -1,4 +1,11 @@
 <?php
+/**
+ * Plugin Name: SLA plugin
+ * Description: Automates README updates for plugins, ensuring consistency and Slack integration for notifications.
+ * Version: 1.0.0
+ * Author: Argo22 by Jakub Korous
+ */
+
 // Zabránění přímému přístupu k souboru
 if (!defined('ABSPATH')) {
     exit;
