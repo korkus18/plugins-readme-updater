@@ -4,7 +4,7 @@
 
 ### Environment: Production
 
-### Date: 2025-02-10 00:01
+### Date: 2025-02-12 13:36
 
 ### Wordpress Core, Version 6.7.1
 
@@ -19,7 +19,7 @@ Autor: WebFactory Ltd
 active
 
 #### [Advanced Custom Fields PRO](https://www.advancedcustomfields.com)
-Version 6.3.11
+Version 6.3.12
 Customize WordPress with powerful, professional and intuitive fields.
 Autor: WP Engine
 active
@@ -31,7 +31,7 @@ Autor: Automattic
 active
 
 #### [Better Find and Replace](https://codesolz.net/our-products/wordpress-plugin/real-time-auto-find-and-replace/)
-Version 1.6.7
+Version 1.6.9
 The plugin has the capability to automatically search for specific words and replace them with your preferred words. You have the ability to create your own search and replace rules for real-time replacement. These rules will be applied before the page is displayed in the browser, as well as during any background interactions with other social plugins.
 Autor: CodeSolz
 active
@@ -61,7 +61,7 @@ Autor: Metagauss
 active
 
 #### [Duplicator Pro](https://duplicator.com/)
-Version 4.5.19.3
+Version 4.5.20.1
 Create, schedule and transfer a copy of your WordPress files and database. Duplicate and move a site from one location to another quickly.
 Autor: Duplicator
 active

@@ -4,7 +4,7 @@
 
 ### Environment: Staging
 
-### Date: 2025-02-08 21:06
+### Date: 2025-02-12 13:40
 
 ### Wordpress Core, Version 6.7.1
 
@@ -19,7 +19,7 @@ Autor: WebFactory Ltd
 active
 
 #### [Advanced Custom Fields PRO](https://www.advancedcustomfields.com)
-Version 6.3.11
+Version 6.3.12
 Customize WordPress with powerful, professional and intuitive fields.
 Autor: WP Engine
 active
@@ -31,7 +31,7 @@ Autor: Automattic
 active
 
 #### [Better Find and Replace](https://codesolz.net/our-products/wordpress-plugin/real-time-auto-find-and-replace/)
-Version 1.6.7
+Version 1.6.9
 The plugin has the capability to automatically search for specific words and replace them with your preferred words. You have the ability to create your own search and replace rules for real-time replacement. These rules will be applied before the page is displayed in the browser, as well as during any background interactions with other social plugins.
 Autor: CodeSolz
 active
@@ -61,7 +61,7 @@ Autor: Metagauss
 active
 
 #### [Duplicator Pro](https://duplicator.com/)
-Version 4.5.19.3
+Version 4.5.20.1
 Create, schedule and transfer a copy of your WordPress files and database. Duplicate and move a site from one location to another quickly.
 Autor: Duplicator
 active
@@ -100,12 +100,6 @@ active
 Version 1.0.0
 Exportuje informace o nainstalovaných pluginech do .md.
 Autor: Argo22 by Jakub Korous
-active
-
-#### SLA Plugin Update Check
-Version 1.0.2
-A custom plugin that displays the update status of all installed plugins in an admin page.
-Autor: ARGO22
 active
 
 #### [WordPress Importer](https://wordpress.org/plugins/wordpress-importer/)
